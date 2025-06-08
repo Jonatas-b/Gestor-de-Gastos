@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Gastos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Gerenciador de Gastos</h1>
+    <input id="salario" placeholder="Salário Mensal: R$ 0,00"><br><br>
+    <input id="acrescimo" placeholder="Acréscimo ao Salário: R$ 0,00"><br><br>
+    <input id="produto" placeholder="Produto">
+    <input id="valor" placeholder="Valor (R$)">
+    <button onclick="adicionarProduto()">Adicionar</button>
+    <br><br>
+    <table id="tabelaProdutos">
+        <thead>
+            <tr>
+                <th>Produto</th>
+                <th>Valor (R$)</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Produtos serão adicionados aqui -->
+        </tbody>
+    </table>
+    <br>
+    <div id="resultado" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
+    <script src="script.js"></script>
+</body>
+</html>
