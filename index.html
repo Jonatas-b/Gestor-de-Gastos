@@ -5,29 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Gastos</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>Gerenciador de Gastos</h1>
-    <input id="salario" placeholder="Salário Mensal: R$ 0,00"><br><br>
-    <input id="acrescimo" placeholder="Acréscimo ao Salário: R$ 0,00"><br><br>
-    <input id="produto" placeholder="Produto">
-    <input id="valor" placeholder="Valor (R$)">
-    <button onclick="adicionarProduto()">Adicionar</button>
-    <br><br>
-    <table id="tabelaProdutos">
-        <thead>
-            <tr>
-                <th>Produto</th>
-                <th>Valor (R$)</th>
-                <th>Data</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Produtos serão adicionados aqui -->
-        </tbody>
-    </table>
-    <br>
-    <div id="resultado" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="abrirAba('abaCadastro')">Gerenciador</button>
+        <button class="tab-btn" onclick="abrirAba('abaHistorico')">Histórico</button>
+    </div>
+
+    <div id="abaCadastro" class="aba active">
+        <div class="container">
+            <div class="inputs-lado">
+                <input id="salario" placeholder="Salário Mensal: R$ 0,00"><br><br>
+                <input id="acrescimo" placeholder="Acréscimo ao Salário: R$ 0,00"><br><br>
+                <input id="produto" placeholder="Produto">
+                <input id="quantidade" type="number" min="1" value="1" placeholder="Qtd">
+                <input id="valor" placeholder="Valor (R$)">
+                <button onclick="adicionarProduto()">Adicionar</button>
+                <div id="resultado" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
+            </div>
+            <div class="tabela-lado">
+                <table id="tabelaProdutos">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Valor (R$)</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Produtos serão adicionados aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="abaHistorico" class="aba">
+        <div class="container">
+            <div class="tabela-lado">
+                <label for="filtroData">Filtrar por data:</label>
+                <input type="date" id="filtroData" onchange="filtrarPorData()">
+                <button class="limpar-filtro-btn" onclick="limparFiltro()">Limpar Filtro</button>
+                <table id="tabelaHistorico">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Quantidade</th>
+                            <th>Valor (R$)</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Histórico filtrado será exibido aqui -->
+                    </tbody>
+                </table>
+                <div id="infoSaldoHistorico" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>© 2025 Jônatas Emanuel Batista</p>
+         <p>
+        Dúvidas ou sugestões? 
+        <a href="mailto:jonatasemanuelbatista12@gmail.com" class="footer-link">Fale conosco</a> 
+         </p>
+    </footer>
     <script src="script.js"></script>
 </body>
 </html>

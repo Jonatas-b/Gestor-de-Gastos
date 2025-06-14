@@ -1,66 +1,265 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #f7f7f7;
+html, body {
+    height: 100%;
     margin: 0;
-    padding: 40px 0;
+    padding: 0;
+    background: #f6f8fa;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    padding: 0;
 }
 
+/* Cabeçalho */
 h1 {
-    color: #333;
-    margin-bottom: 24px;
+    color: #1a237e;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 32px 0 16px 0;
+    text-align: center;
 }
 
-input, button {
-    padding: 8px 12px;
-    margin: 4px 2px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.tab-btn {
+    padding: 10px 28px;
+    border: none;
+    background: #e3e8f0;
+    color: #1a237e;
+    border-radius: 24px;
+    font-weight: 600;
     font-size: 16px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: 0 1px 4px rgba(60,60,60,0.04);
 }
 
-input:focus {
+.tab-btn.active, .tab-btn:hover {
+    background: #1a237e;
+    color: #fff;
+}
+
+/* Layout principal */
+.container {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    justify-content: center;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto 32px auto;
+}
+
+/* Inputs à esquerda */
+.inputs-lado {
+    min-width: 260px;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background: #fff;
+    padding: 32px 24px;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(60,60,60,0.07);
+}
+
+.inputs-lado input, .inputs-lado button {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inputs-lado input {
+    padding: 12px 14px;
+    border: 1.5px solid #e3e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #f6f8fa;
+    transition: border 0.2s;
+    color: #1a237e;
+}
+
+.inputs-lado input:focus {
     outline: none;
-    border-color: #4a90e2;
+    border-color: #1a237e;
+    background: #fff;
 }
 
-button {
-    background: #4a90e2;
+.inputs-lado button {
+    background: #1a237e;
     color: #fff;
     border: none;
+    border-radius: 8px;
+    padding: 12px 0;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    margin-top: 8px;
     transition: background 0.2s;
 }
 
-button:hover {
-    background: #357abd;
+.inputs-lado button:hover {
+    background: #3949ab;
+}
+
+/* Personalização do input de data */
+input[type="date"] {
+    padding: 10px 14px;
+    border: 1.5px solid #e3e8f0;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #f6f8fa;
+    color: #1a237e;
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+    margin-right: 12px;
+}
+
+input[type="date"]:focus {
+    border-color: #1a237e;
+    background: #fff;
+    box-shadow: 0 0 0 2px #c5cae9;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(30%) sepia(80%) saturate(600%) hue-rotate(200deg);
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+input[type="date"]:hover::-webkit-calendar-picker-indicator {
+    filter: invert(40%) sepia(100%) saturate(900%) hue-rotate(220deg);
+}
+
+/* Tabela à direita */
+.tabela-lado {
+    flex: 1;
+    min-width: 400px;
+    background: #fff;
+    padding: 24px 18px;
+    border-radius: 18px;
+    box-shadow: 0 2px 16px rgba(60,60,60,0.07);
 }
 
 table {
-    width: 340px;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 0;
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    border-collapse: collapse;
-    margin-top: 16px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(60,60,60,0.04);
 }
 
 th, td {
-    padding: 12px 8px;
+    padding: 14px 10px;
     text-align: left;
+    font-size: 15px;
 }
 
 th {
-    background: #4a90e2;
-    color: #fff;
+    background: #e3e8f0;
+    color: #1a237e;
+    font-weight: 700;
+    border-bottom: 2px solid #c5cae9;
+    text-align: center; /* Centraliza o texto dos títulos */
+}
+
+td {
+    text-align: center; /* Centraliza o conteúdo das células */
 }
 
 tr:nth-child(even) {
-    background: #f2f8fc;
+    background: #f6f8fa;
 }
 
 tr:nth-child(odd) {
     background: #fff;
+}
+
+/* Aba e footer */
+.aba {
+    display: none;
+}
+
+.aba.active {
+    display: block;
+}
+
+#resultado, #infoSaldoHistorico {
+    color: #1a237e;
+    background: #e3e8f0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 17px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.footer {
+    margin-top: auto;
+    background: #1a237e;
+    color: #fff;
+    text-align: center;
+    padding: 16px 0;
+    width: 100%;
+    font-size: 15px;
+    letter-spacing: 1px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    box-shadow: 0 -2px 8px rgba(60,60,60,0.07);
+}
+
+.footer-link {
+    color: #fff;
+    text-decoration: underline;
+    margin: 0 6px;
+    transition: color 0.2s;
+}
+
+.footer-link:hover {
+    color: #c5cae9;
+}
+
+/* Botão Limpar Filtro */
+.limpar-filtro-btn {
+    background: #e53935;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    transition: background 0.2s;
+}
+
+.limpar-filtro-btn:hover {
+    background: #b71c1c;
+}
+
+/* Responsivo */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 24px;
+        max-width: 98vw;
+    }
+    .tabela-lado {
+        min-width: unset;
+    }
 }
