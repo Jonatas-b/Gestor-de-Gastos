@@ -1,5 +1,126 @@
 const historico = [];
 
+const hoje = new Date().toDateString();
+
+function verificarNovoDia() {
+    const ultimoDiaSalvo = localStorage.getItem('dataUltimaAbertura');
+    if (ultimoDiaSalvo !== hoje) {
+        localStorage.setItem('dataUltimaAbertura', hoje);
+        // Zera apenas os históricos de todos os cálculos
+        const data = localStorage.getItem('calculos');
+        if (data) {
+            const calculos = JSON.parse(data);
+            for (let nome in calculos) {
+                calculos[nome].historico = [];
+            }
+            localStorage.setItem('calculos', JSON.stringify(calculos));
+        }
+    }
+}
+
+function verificarNovoMes() {
+    const mesAtual = new Date().getMonth();
+    const anoAtual = new Date().getFullYear();
+    const mesSalvo = localStorage.getItem('mesSalario');
+    const mesAnoAtual = `${mesAtual}-${anoAtual}`;
+    if (mesSalvo !== mesAnoAtual) {
+        const data = localStorage.getItem('calculos');
+        if (data) {
+            const calculos = JSON.parse(data);
+            for (let nome in calculos) {
+                calculos[nome].salario = '';
+                calculos[nome].acrescimo = '';
+            }
+            localStorage.setItem('calculos', JSON.stringify(calculos));
+        }
+        localStorage.setItem('mesSalario', mesAnoAtual);
+    }
+}
+
+let calculos = {};
+let calculoAtual = '';
+
+function carregarCalculos() {
+    const data = localStorage.getItem('calculos');
+    if (data) {
+        calculos = JSON.parse(data);
+    }
+
+    calculoAtual = localStorage.getItem('calculoAtual') || Object.keys(calculos)[0] || 'Principal';
+
+    if (!calculos[calculoAtual]) {
+        calculos[calculoAtual] = { salario: '', acrescimo: '', historico: [] };
+    }
+
+    atualizarSelect();
+    carregarDadosDoCalculo();
+}
+
+function atualizarSelect() {
+    const select = document.getElementById('selectCalculo');
+    select.innerHTML = '';
+    Object.keys(calculos).forEach(nome => {
+        const opt = document.createElement('option');
+        opt.value = nome;
+        opt.textContent = nome;
+        if (nome === calculoAtual) opt.selected = true;
+        select.appendChild(opt);
+    });
+}
+
+function novoCalculo() {
+    const nome = prompt("Nome do novo cálculo:");
+    if (!nome || calculos[nome]) return;
+    calculos[nome] = { salario: '', acrescimo: '', historico: [] };
+    calculoAtual = nome;
+    localStorage.setItem('calculoAtual', nome);
+    salvarTodosOsCalculos();
+    atualizarSelect();
+    carregarDadosDoCalculo();
+}
+
+function trocarCalculo() {
+    salvarDadosNoCalculo();
+    const select = document.getElementById('selectCalculo');
+    calculoAtual = select.value;
+    localStorage.setItem('calculoAtual', calculoAtual);
+    carregarDadosDoCalculo();
+}
+
+function salvarTodosOsCalculos() {
+    localStorage.setItem('calculos', JSON.stringify(calculos));
+}
+
+function salvarDadosNoCalculo() {
+    calculos[calculoAtual] = {
+        salario: document.getElementById('salario').value,
+        acrescimo: document.getElementById('acrescimo').value,
+        historico: [...historico]
+    };
+    salvarTodosOsCalculos();
+}
+
+function carregarDadosDoCalculo() {
+    const dados = calculos[calculoAtual];
+    document.getElementById('salario').value = dados.salario || '';
+    document.getElementById('acrescimo').value = dados.acrescimo || '';
+
+    historico.length = 0;
+    const tabela = document.getElementById('tabelaProdutos').getElementsByTagName('tbody')[0];
+    tabela.innerHTML = '';
+
+    dados.historico.forEach(item => {
+        historico.push(item);
+        const novaLinha = tabela.insertRow();
+        novaLinha.insertCell(0).textContent = item.produto;
+        novaLinha.insertCell(1).textContent = item.quantidade;
+        novaLinha.insertCell(2).textContent = item.valor;
+        novaLinha.insertCell(3).textContent = item.data;
+    });
+
+    calcularSaldo();
+}
+
 function adicionarProduto() {
     const produto = document.getElementById('produto').value.trim();
     const quantidade = document.getElementById('quantidade').value.trim();
@@ -36,85 +157,9 @@ function adicionarProduto() {
         document.getElementById('valor').value = '';
 
         calcularSaldo();
-        salvarDados();
+        salvarDadosNoCalculo();
     }
 }
-
-// Salvar dados no localStorage
-function salvarDados() {
-    localStorage.setItem('salario', document.getElementById('salario').value);
-    localStorage.setItem('acrescimo', document.getElementById('acrescimo').value);
-    localStorage.setItem('historico', JSON.stringify(historico));
-}
-
-// Carregar dados do localStorage ao abrir a página
-function carregarDados() {
-    const salario = localStorage.getItem('salario');
-    const acrescimo = localStorage.getItem('acrescimo');
-    const hist = localStorage.getItem('historico');
-
-    if (salario) document.getElementById('salario').value = salario;
-    if (acrescimo) document.getElementById('acrescimo').value = acrescimo;
-    if (hist) {
-        const lista = JSON.parse(hist);
-        lista.forEach(item => {
-            historico.push(item);
-            const tabela = document.getElementById('tabelaProdutos').getElementsByTagName('tbody')[0];
-            const novaLinha = tabela.insertRow();
-            novaLinha.insertCell(0).textContent = item.produto;
-            novaLinha.insertCell(1).textContent = item.quantidade;
-            novaLinha.insertCell(2).textContent = item.valor;
-            novaLinha.insertCell(3).textContent = item.data;
-        });
-    }
-    calcularSaldo();
-}
-
-// Formata o salário enquanto o usuário digita e recalcula o saldo
-document.getElementById('salario').addEventListener('input', function (e) {
-    let valor = e.target.value.replace(/\D/g, '');
-    if (!valor) {
-        e.target.value = '';
-        calcularSaldo();
-        return;
-    }
-    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    });
-    e.target.value = valor;
-    calcularSaldo();
-});
-
-// Formata o valor do produto enquanto o usuário digita
-document.getElementById('valor').addEventListener('input', function (e) {
-    let valor = e.target.value.replace(/\D/g, '');
-    if (!valor) {
-        e.target.value = '';
-        return;
-    }
-    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    });
-    e.target.value = valor;
-});
-
-// Formata o acréscimo enquanto o usuário digita e recalcula o saldo
-document.getElementById('acrescimo').addEventListener('input', function (e) {
-    let valor = e.target.value.replace(/\D/g, '');
-    if (!valor) {
-        e.target.value = '';
-        calcularSaldo();
-        return;
-    }
-    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
-        style: 'currency',
-        currency: 'BRL'
-    });
-    e.target.value = valor;
-    calcularSaldo();
-});
 
 function calcularSaldo() {
     let salario = document.getElementById('salario').value.replace(/\D/g, '');
@@ -134,9 +179,56 @@ function calcularSaldo() {
 
     document.getElementById('resultado').textContent =
         `Saldo restante: ${saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+
+    document.getElementById('totalGastoDia').textContent =
+        `Total gasto hoje: ${totalGastos.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
 }
 
-// Controle de abas
+document.getElementById('salario').addEventListener('input', function (e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (!valor) {
+        e.target.value = '';
+        calcularSaldo();
+        return;
+    }
+    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+    e.target.value = valor;
+    calcularSaldo();
+    salvarDadosNoCalculo();
+});
+
+document.getElementById('valor').addEventListener('input', function (e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (!valor) {
+        e.target.value = '';
+        return;
+    }
+    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+    e.target.value = valor;
+});
+
+document.getElementById('acrescimo').addEventListener('input', function (e) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (!valor) {
+        e.target.value = '';
+        calcularSaldo();
+        return;
+    }
+    valor = (Number(valor) / 100).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+    });
+    e.target.value = valor;
+    calcularSaldo();
+    salvarDadosNoCalculo();
+});
+
 function abrirAba(id) {
     document.querySelectorAll('.aba').forEach(div => div.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -144,7 +236,6 @@ function abrirAba(id) {
     document.querySelector(`.tab-btn[onclick="abrirAba('${id}')"]`).classList.add('active');
 }
 
-// Função para filtrar histórico por data
 function filtrarPorData() {
     const filtro = document.getElementById('filtroData').value;
     const tbody = document.getElementById('tabelaHistorico').getElementsByTagName('tbody')[0];
@@ -153,14 +244,11 @@ function filtrarPorData() {
 
     if (!filtro) return;
 
-    // Converte data do input (aaaa-mm-dd) para dd/mm/aaaa
     const partes = filtro.split('-');
     const dataFiltro = `${partes[2]}/${partes[1]}/${partes[0]}`;
 
-    // Filtra os itens do histórico para o dia selecionado
     const itensDia = historico.filter(item => item.data === dataFiltro);
 
-    // Mostra os produtos do dia
     let totalGastoDia = 0;
     itensDia.forEach(item => {
         const linha = tbody.insertRow();
@@ -169,12 +257,10 @@ function filtrarPorData() {
         linha.insertCell(2).textContent = item.valor;
         linha.insertCell(3).textContent = item.data;
 
-        // Soma o gasto do dia (quantidade * valor unitário)
         const valorUnitario = Number(item.valor.replace(/\D/g, '')) / 100;
         totalGastoDia += (Number(item.quantidade) || 1) * valorUnitario;
     });
 
-    // Saldo inicial do dia (salário + acréscimo salvos no localStorage)
     let salario = localStorage.getItem('salario') || '';
     let acrescimo = localStorage.getItem('acrescimo') || '';
     salario = salario.replace(/\D/g, '');
@@ -188,7 +274,6 @@ function filtrarPorData() {
         `Saldo restante: ${saldoRestante.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
 }
 
-// Função para limpar filtro de data
 function limparFiltro() {
     document.getElementById('filtroData').value = '';
     const tbody = document.getElementById('tabelaHistorico').getElementsByTagName('tbody')[0];
@@ -196,10 +281,8 @@ function limparFiltro() {
     document.getElementById('infoSaldoHistorico').textContent = '';
 }
 
-// Sempre que adicionar produto ou alterar salário/acréscimo, salve:
-document.getElementById('salario').addEventListener('input', salvarDados);
-document.getElementById('acrescimo').addEventListener('input', salvarDados);
-
-// Ao carregar a página:
-window.addEventListener('DOMContentLoaded', carregarDados);
-
+window.addEventListener('DOMContentLoaded', () => {
+    verificarNovoMes();
+    verificarNovoDia();
+    carregarCalculos();
+});
