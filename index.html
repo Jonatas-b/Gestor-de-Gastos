@@ -9,14 +9,17 @@
 </head>
 <body>
     <h1>Gerenciador de Gastos</h1>
+    <div class="top-bar">
         <div id="controleCalculo">
             <label for="selectCalculo">Cálculo atual:</label>
             <select id="selectCalculo" onchange="trocarCalculo()"></select>
             <button onclick="novoCalculo()">Novo Cálculo</button>
+            <button onclick="apagarCalculo()" id="btnApagarCalculo" title="Apagar este cálculo">🗑️</button>
         </div>
-    <div class="tabs">
-        <button class="tab-btn active" onclick="abrirAba('abaCadastro')">Gerenciador</button>
-        <button class="tab-btn" onclick="abrirAba('abaHistorico')">Histórico</button>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="abrirAba('abaCadastro')">Gerenciador</button>
+            <button class="tab-btn" onclick="abrirAba('abaHistorico')">Histórico</button>
+        </div>
     </div>
 
     <div id="abaCadastro" class="aba active">
@@ -75,10 +78,10 @@
 
     <footer class="footer">
         <p>© 2025 Jônatas Emanuel Batista</p>
-         <p>
-        Dúvidas ou sugestões? 
-        <a href="mailto:jonatasemanuelbatista12@gmail.com" class="footer-link">Fale conosco</a> 
-         </p>
+        <p>
+            Dúvidas ou sugestões?
+            <a href="mailto:jonatasemanuelbatista12@gmail.com" class="footer-link">Fale conosco</a>
+        </p>
     </footer>
     <script src="script.js"></script>
 </body>
