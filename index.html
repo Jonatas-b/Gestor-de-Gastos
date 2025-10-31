@@ -1,92 +1,163 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gestor de Gastos</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="apple-touch-icon" sizes="180x180" href="icon/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icon/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icon/favicon-16x16.png">
-    <link rel="manifest" href="icon/site.webmanifest">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="icon/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="icon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="icon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="icon/site.webmanifest" />
+  </head>
+  <body>
     <h1>Gerenciador de Gastos</h1>
     <div class="top-bar">
-        <div id="controleCalculo">
-            <label for="selectCalculo">Cálculo atual:</label>
-            <select id="selectCalculo" onchange="trocarCalculo()"></select>
-            <button onclick="novoCalculo()">Novo Cálculo</button>
-            <button onclick="apagarCalculo()" id="btnApagarCalculo" title="Apagar este cálculo">🗑️</button>
-        </div>
-        <div class="tabs">
-            <button class="tab-btn active" onclick="abrirAba('abaCadastro')">Gerenciador</button>
-            <button class="tab-btn" onclick="abrirAba('abaHistorico')">Histórico</button>
-        </div>
+      <div id="controleCalculo">
+        <label for="selectCalculo">Cálculo atual:</label>
+        <select id="selectCalculo" onchange="trocarCalculo()"></select>
+        <button onclick="novoCalculo()">Novo Cálculo</button>
+        <button
+          onclick="apagarCalculo()"
+          id="btnApagarCalculo"
+          title="Apagar este cálculo"
+        >
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="abrirAba('abaCadastro')">
+          Gerenciador
+        </button>
+        <button class="tab-btn" onclick="abrirAba('abaHistorico')">
+          Histórico
+        </button>
+      </div>
     </div>
 
     <div id="abaCadastro" class="aba active">
-        <div class="container">
-            <div class="inputs-lado">
-                <input id="salario" placeholder="Salário Mensal: R$ 0,00"><br><br>
-                <input id="acrescimo" placeholder="Acréscimo ao Salário: R$ 0,00"><br><br>
-                <input id="produto" placeholder="Produto">
-                <input id="quantidade" type="number" min="1" value="1" placeholder="Qtd">
-                <input id="valor" placeholder="Valor (R$)">
-                <button onclick="adicionarProduto()">Adicionar</button>
-                <div id="resultado" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
-            </div>
-            <div class="tabela-lado">
-                <table id="tabelaProdutos">
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Valor (R$)</th>
-                            <th>Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Produtos serão adicionados aqui -->
-                    </tbody>
-                </table>
-                <div id="totalGastoDia" style="margin-top:16px; font-size:18px; font-weight:bold; color:#1a237e; background:#e3e8f0; border-radius:8px; padding:10px 14px; text-align:center;"></div>
-            </div>
+      <div class="container">
+        <div class="inputs-lado">
+          <input
+            id="salario"
+            placeholder="Salário Mensal: R$ 0,00"
+          /><br /><br />
+          <input
+            id="acrescimo"
+            placeholder="Acréscimo ao Salário: R$ 0,00"
+          /><br /><br />
+          <!-- Saldo restante fica junto com salário/acréscimo -->
+          <div
+            id="resultado"
+            style="margin-top: 16px; font-size: 18px; font-weight: bold"
+          ></div>
         </div>
+        <div class="tabela-lado">
+          <!-- Inputs do produto ficam dentro da própria tabela/área da tabela -->
+          <div class="table-inputs">
+            <input id="produto" placeholder="Produto" />
+            <input
+              id="quantidade"
+              type="number"
+              min="1"
+              value="1"
+              placeholder="Qtd"
+            />
+            <input id="valor" placeholder="Valor (R$)" />
+            <button onclick="adicionarProduto()">Adicionar</button>
+          </div>
+          <table id="tabelaProdutos">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Valor (R$)</th>
+                <th>Data</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Produtos serão adicionados aqui -->
+            </tbody>
+          </table>
+          <div
+            id="totalGastoDia"
+            style="
+              margin-top: 16px;
+              font-size: 18px;
+              font-weight: bold;
+              color: #0f172a;
+              background: #cbd5e1;
+              border-radius: 8px;
+              padding: 10px 14px;
+              text-align: center;
+            "
+          ></div>
+        </div>
+      </div>
     </div>
 
     <div id="abaHistorico" class="aba">
-        <div class="container">
-            <div class="tabela-lado">
-                <label for="filtroData">Filtrar por data:</label>
-                <input type="date" id="filtroData" onchange="filtrarPorData()">
-                <button class="limpar-filtro-btn" onclick="limparFiltro()">Limpar Filtro</button>
-                <table id="tabelaHistorico">
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Valor (R$)</th>
-                            <th>Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Histórico filtrado será exibido aqui -->
-                    </tbody>
-                </table>
-                <div id="infoSaldoHistorico" style="margin-top:16px; font-size:18px; font-weight:bold;"></div>
-            </div>
+      <div class="container">
+        <div class="tabela-lado">
+          <label for="filtroData">Filtrar por data:</label>
+          <input type="date" id="filtroData" onchange="filtrarPorData()" />
+          <button class="limpar-filtro-btn" onclick="limparFiltro()">
+            Limpar Filtro
+          </button>
+          <table id="tabelaHistorico">
+            <thead>
+              <tr>
+                <th>Produto</th>
+                <th>Quantidade</th>
+                <th>Valor (R$)</th>
+                <th>Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Histórico filtrado será exibido aqui -->
+            </tbody>
+          </table>
+          <div
+            id="infoSaldoHistorico"
+            style="margin-top: 16px; font-size: 18px; font-weight: bold"
+          ></div>
         </div>
+      </div>
     </div>
 
     <footer class="footer">
-        <p>© 2025 Jônatas Emanuel Batista</p>
-        <p>
-            Dúvidas ou sugestões?
-            <a href="mailto:jonatasemanuelbatista12@gmail.com" class="footer-link">Fale comigo</a>
-        </p>
+      <p>© 2025 Jônatas Emanuel Batista</p>
+      <p>
+        Dúvidas ou sugestões?
+        <a href="mailto:jonatasemanuelbatista12@gmail.com" class="footer-link"
+          >Fale comigo</a
+        >
+      </p>
     </footer>
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
