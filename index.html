@@ -39,7 +39,7 @@
       <div id="controleCalculo">
         <label for="selectCalculo">Cálculo atual:</label>
         <select id="selectCalculo" onchange="trocarCalculo()"></select>
-        <button onclick="novoCalculo()">Novo Cálculo</button>
+        <button onclick="novoCalculo()" id="criarCalculo">Novo Cálculo</button>
         <button
           onclick="apagarCalculo()"
           id="btnApagarCalculo"
@@ -72,7 +72,7 @@
           <!-- Saldo restante fica junto com salário/acréscimo -->
           <div
             id="resultado"
-            style="margin-top: 16px; font-size: 18px; font-weight: bold"
+            style="margin-top: 16px; font-weight: bold"
           ></div>
         </div>
         <div class="tabela-lado">
@@ -84,7 +84,7 @@
               type="number"
               min="1"
               value="1"
-              placeholder="Qtd"
+              placeholder="Quantidade"
             />
             <input id="valor" placeholder="Valor (R$)" />
             <button onclick="adicionarProduto()">Adicionar</button>
@@ -107,7 +107,6 @@
             id="totalGastoDia"
             style="
               margin-top: 16px;
-              font-size: 18px;
               font-weight: bold;
               color: #0f172a;
               background: #cbd5e1;
