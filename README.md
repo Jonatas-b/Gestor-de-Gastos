@@ -26,7 +26,7 @@ Esse projeto foi construído com:
 
 ## 📌 Sobre o Projeto
 
-Ferramenta simples para **organizar finanças pessoais&&. Permite registrar despesas e receitas, além de acompanhar o saldo final de forma visual e prática. Uma solução útil para quem busca controlar melhor seus gastos no dia a dia.  
+Ferramenta simples para **organizar finanças pessoais**. Permite registrar despesas e receitas, além de acompanhar o saldo final de forma visual e prática. Uma solução útil para quem busca controlar melhor seus gastos no dia a dia.  
 
 👉 [Acesse o projeto aqui](https://jonatas-b.github.io/Gestor-de-Gastos/)  
 
