@@ -29,6 +29,86 @@ h1 {
   text-align: center;
 }
 
+.fundoModal {
+  display: none;
+  position: absolute;
+  width: 100dvw;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1.5rem;
+  width: 40%;
+  height: fit-content;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  z-index: 1001;
+  background: #cbd5e1;
+  color: #0f172a;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  line-height: 1.5rem;
+  flex-direction: column;
+}
+
+.modal div {
+  margin: 0 0 0.2rem 0;
+  width: 100%;
+}
+
+.modal .circle {
+  width: 300px !important;
+  height: 300px !important;
+}
+
+.modal button {
+  margin-bottom: 0.5rem;
+  padding: 5px 10px;
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+}
+
+#modalResumoMes .modal {
+  text-align: center;
+}
+
+#sobre {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  width: fit-content;
+  height: auto;
+  background: transparent;
+  border: none;
+}
+
+#sobre:hover {
+  cursor: pointer;
+  transform: scale(1.2);
+  transition: transform 0.5s;
+}
+
+#sobre img {
+  width: 2.5rem;
+  height: auto;
+}
+
 /* Tabs */
 .tabs {
   display: flex;
@@ -46,7 +126,9 @@ h1 {
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background 0.8s, color 0.2s;
+  transition:
+    background 0.8s,
+    color 0.2s;
 }
 
 .tab-btn.active,
@@ -102,28 +184,32 @@ h1 {
 }
 
 /* Personalização do input de data */
-input[type="date"] {
+input[type="month"] {
   padding: 10px 14px;
   border-radius: 8px;
   font-size: 16px;
   background: #1e293b;
-  color: #cbd5e1;
+  color: #0d9488;
   outline: none;
   margin-right: 12px;
+  width: 15px;
+  text-align: center;
 }
 
-input[type="date"]:focus {
+input[type="month"]:focus {
   border-color: #0d9488;
   background: #1e293b;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
+input[type="month"]::-webkit-calendar-picker-indicator {
   filter: invert(30%) sepia(80%) saturate(600%) hue-rotate(200deg);
   cursor: pointer;
   transition: filter 0.2s;
+  margin: 0;
+  padding: 0;
 }
 
-input[type="date"]:hover::-webkit-calendar-picker-indicator {
+input[type="month"]:hover::-webkit-calendar-picker-indicator {
   filter: invert(40%) sepia(100%) saturate(900%) hue-rotate(220deg);
 }
 
@@ -245,17 +331,27 @@ tr:nth-child(odd) {
   background: #c22d2b;
 }
 
-#controleCalculo {
+#controleCalculo button {
   background: transparent;
   padding: 10px 14px;
   border-radius: 10px;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.9);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   margin-bottom: 18px;
   z-index: 1000;
   color: #cbd5e1;
+}
+
+.circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: conic-gradient(#0d9488 0%, #1e293b 0);
+  flex-shrink: 0;
+  margin: auto;
 }
 
 /* Novo: container para controle e tabs */
@@ -341,6 +437,7 @@ table {
   gap: 8px;
   align-items: center;
   margin-bottom: 12px;
+  width: auto;
 }
 .table-inputs input {
   padding: 10px 12px;
@@ -348,6 +445,7 @@ table {
   border-radius: 8px;
   background: #1e293b;
   color: #cbd5e1;
+  width: 25%;
 }
 .table-inputs input:focus {
   outline: none;
@@ -356,8 +454,15 @@ table {
   background: #0d9488;
   color: #cbd5e1;
   border: none;
+  width: 15%;
+  display: flex;
+  text-align: center;
+  font-size: 1em;
+  justify-content: center;
+  align-items: center;
   border-radius: 8px;
   padding: 10px 14px;
+  font-weight: 500;
   cursor: pointer;
 }
 .table-inputs button:hover {
@@ -383,15 +488,73 @@ table {
   background: #c22d2b;
 }
 
-#totalGastoDia, #resultado {
-    font-size: 18px;
+#totalGastoDia,
+#resultado {
+  font-size: 18px;
+}
+
+.dialogo-custom {
+  color: #0f172a;
+  border-radius: 16px;
+  padding: 20px;
+  width: 350px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #cbd5e1;
+  z-index: 2000;
+}
+
+.dialogo-custom input {
+  padding: 8px 12px;
+  border: 1.5px solid #0d9488;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #1e293b;
+  color: #cbd5e1;
+  margin-top: 12px;
+}
+
+#_edit_save, #_edit_cancel {
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#_edit_cancel {
+  background: #c22d2b;
+}
+
+.btnTabela {
+  background: #0d9488;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 /* Responsividade */
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   * {
     font-size: 11px;
     font-weight: 500;
+  }
+
+  #sobre img {
+    width: 1.8rem;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
   }
 
   .inputs-lado input,
@@ -413,7 +576,8 @@ table {
     gap: 8px;
   }
 
-  .tab-btn, .tab-btn.active{
+  .tab-btn,
+  .tab-btn.active {
     width: 40%;
     padding: 10px 12px;
     font-size: 14px;
@@ -427,11 +591,11 @@ table {
   .botaoJS {
     font-size: 8px;
     display: block;
-    margin: 2px
+    margin: 2px;
   }
 
   #controleCalculo {
-    width: 90%;
+    width: fit-content;
     margin: 1.5rem auto;
     gap: 4px;
   }
@@ -440,14 +604,15 @@ table {
     font-size: 11px;
     flex-direction: row;
   }
-  #totalGastoDia, #resultado {
+  #totalGastoDia,
+  #resultado {
     font-size: 12px;
   }
   .inputs-lado {
     flex-direction: column;
     gap: 1px;
   }
-  #controleCalculo #criarCalculo{
+  #controleCalculo #criarCalculo {
     display: flex;
     font-size: 13px;
     justify-content: center;
@@ -472,6 +637,6 @@ table {
     width: 100%;
   }
   #filtroData {
-    width: 30%;
+    width: 15px;
   }
 }

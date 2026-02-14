@@ -35,18 +35,32 @@
   </head>
   <body>
     <h1>Gerenciador de Gastos</h1>
+
+    <div id="modalSobre" class="fundoModal">
+      <div class="modal">
+        <div><button onclick="fecharModalSobre();">X</button></div>
+        <p>O Gestor de Gastos é um aplicativo simples para você controlar suas despesas mensais. 
+          <br>Aqui você registra suas compras do mês, informa o salário e eventuais acréscimos, e acompanha o saldo restante de forma clara. 
+          <br>No começo de cada mês o aplicativo guarda o mês anterior e calcula o saldo final (positivo ou negativo), que é automaticamente somado ao salário do mês seguinte, mantendo seu histórico organizado. 
+          <br>Também é possível ver o histórico selecionando qualquer data — mesmo que nada tenha sido alterado naquele dia — e editar ou excluir lançamentos feitos no dia atual. Tudo fica salvo no seu navegador, sem precisar criar conta ou configurar nada.
+        </p>
+      </div>
+    </div>
+
+    <button id="sobre" title="Sobre o aplicativo" onclick="abrirModalSobre();"><img src="./icon/android-chrome-512x512.png"></img></button>
+
+    <div id="modalResumoMes" class="fundoModal">
+      <div class="modal">
+        <div><button onclick="fecharModalResumo();">X</button></div>
+        <p>Total restante em relação à renda mensal (%).</p>
+        <div class="circle" id="resumoGrafico"></div>
+        <p id="porcentagemTxt"></p>
+      </div>
+    </div>
+
     <div class="top-bar">
       <div id="controleCalculo">
-        <label for="selectCalculo">Cálculo atual:</label>
-        <select id="selectCalculo" onchange="trocarCalculo()"></select>
-        <button onclick="novoCalculo()" id="criarCalculo">Novo Cálculo</button>
-        <button
-          onclick="apagarCalculo()"
-          id="btnApagarCalculo"
-          title="Apagar este cálculo"
-        >
-          <i class="fa-solid fa-trash"></i>
-        </button>
+        <button onclick="abrirModalResumo();"><span id="mesAtual" style="font-weight:600; color:#cbd5e1;"></span></button>
       </div>
       <div class="tabs">
         <button class="tab-btn active" onclick="abrirAba('abaCadastro')">
@@ -122,8 +136,8 @@
     <div id="abaHistorico" class="aba">
       <div class="container">
         <div class="tabela-lado">
-          <label for="filtroData">Filtrar por data:</label>
-          <input type="date" id="filtroData" onchange="filtrarPorData()" />
+          <label for="filtroData">Filtrar por mês:</label>
+          <input type="month" id="filtroData" onchange="filtrarPorData()" />
           <button class="limpar-filtro-btn" onclick="limparFiltro()">
             Limpar Filtro
           </button>

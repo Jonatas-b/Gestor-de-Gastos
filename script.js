@@ -1,809 +1,458 @@
-// Array para armazenar o histórico de produtos adicionados no cálculo atual
-const historico = [];
+// Gestor mensal - versão simplificada
 
-// Armazena a data de hoje em formato string
-const hoje = new Date().toDateString();
+// Chaves de storage
+const KEY_DADOS_MES = "dadosMes"; // objeto do mês atual
+const KEY_HISTORICO_MENSAL = "historicoMensal"; // array de snapshots mensais
 
-// Verifica se é um novo dia e zera o histórico dos cálculos se necessário
-function verificarNovoDia() {
-  const ultimoDiaSalvo = localStorage.getItem("dataUltimaAbertura");
-  if (ultimoDiaSalvo !== hoje) {
-    localStorage.setItem("dataUltimaAbertura", hoje);
-    // Zera apenas os históricos de todos os cálculos
-    const data = localStorage.getItem("calculos");
-    if (data) {
-      const calculos = JSON.parse(data);
-      for (let nome in calculos) {
-        calculos[nome].historico = [];
-      }
-      localStorage.setItem("calculos", JSON.stringify(calculos));
-    }
-  }
+function mesId(date = new Date()) {
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const y = date.getFullYear();
+  return `${m}-${y}`; // MM-YYYY
 }
 
-// Verifica se é um novo mês e zera salário/acréscimo dos cálculos se necessário
-function verificarNovoMes() {
-  const mesAtual = new Date().getMonth();
-  const anoAtual = new Date().getFullYear();
-  const mesSalvo = localStorage.getItem("mesSalario");
-  const mesAnoAtual = `${mesAtual}-${anoAtual}`;
-  if (mesSalvo !== mesAnoAtual) {
-    const data = localStorage.getItem("calculos");
-    if (data) {
-      const calculos = JSON.parse(data);
-      for (let nome in calculos) {
-        calculos[nome].salario = "";
-        calculos[nome].acrescimo = "";
-      }
-      localStorage.setItem("calculos", JSON.stringify(calculos));
-    }
-    localStorage.setItem("mesSalario", mesAnoAtual);
-  }
-}
-
-// Objeto para armazenar todos os cálculos e variável para o cálculo atual
-let calculos = {};
-let calculoAtual = "";
-
-// Carrega os cálculos do localStorage e inicializa o cálculo atual
-function carregarCalculos() {
-  const data = localStorage.getItem("calculos");
-  if (data) {
-    calculos = JSON.parse(data);
-  }
-
-  calculoAtual =
-    localStorage.getItem("calculoAtual") ||
-    Object.keys(calculos)[0] ||
-    "Principal";
-
-  if (!calculos[calculoAtual]) {
-    calculos[calculoAtual] = { salario: "", acrescimo: "", historico: [] };
-  }
-
-  atualizarSelect();
-  carregarDadosDoCalculo();
-}
-
-// Atualiza o select de cálculos na interface
-function atualizarSelect() {
-  const select = document.getElementById("selectCalculo");
-  select.innerHTML = "";
-  Object.keys(calculos).forEach((nome) => {
-    const opt = document.createElement("option");
-    opt.value = nome;
-    opt.textContent = nome;
-    if (nome === calculoAtual) opt.selected = true;
-    select.appendChild(opt);
+function formatarMoedaFromDigits(digits) {
+  return (Number(digits) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
   });
 }
 
-// Cria um novo cálculo, salva e atualiza a interface
-function novoCalculo() {
-  // Cria diálogo de entrada
-  const dialogoNovo = document.createElement('div');
-  dialogoNovo.className = 'dialogo-custom';
-  dialogoNovo.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #fff;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
-    z-index: 2000;
-    min-width: 300px;
-    text-align: center;
-  `;
-
-  // Overlay que bloqueia interação com o resto da página
-  const overlay = document.createElement('div');
-  overlay.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(15, 23, 42, 0.5);
-    z-index: 1999;
-  `;
-  document.body.appendChild(overlay);
-
-  // Conteúdo do diálogo
-  dialogoNovo.innerHTML = `
-    <h3 style="margin: 0 0 15px 0; color: #0F172A;">Novo Cálculo</h3>
-    <div style="margin-bottom: 20px;">
-      <label style="display: block; margin-bottom: 5px; color: #0F172A;">Nome do cálculo:</label>
-      <input type="text" id="nomeNovoCalculo" style="width: 100%; padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px;">
-    </div>
-    <div style="text-align: right;">
-      <button id="btnCancelarNovo" style="background: #CBD5E1; color: #0F172A; border: none; border-radius: 6px; padding: 8px 16px; margin-right: 8px; cursor: pointer;">Cancelar</button>
-      <button id="btnCriarNovo" style="background: #0D9488; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer;">Criar</button>
-    </div>
-  `;
-
-  document.body.appendChild(dialogoNovo);
-
-  // Foca no input
-  const inputNome = document.getElementById('nomeNovoCalculo');
-  inputNome.focus();
-
-  // Event listeners
-  document.getElementById('btnCancelarNovo').onclick = () => {
-    document.body.removeChild(overlay);
-    document.body.removeChild(dialogoNovo);
-  };
-
-  document.getElementById('btnCriarNovo').onclick = () => {
-    const nome = inputNome.value.trim();
-    if (!nome) {
-      mostrarDialogo('Por favor, digite um nome para o cálculo.');
-      return;
-    }
-    if (calculos[nome]) {
-      mostrarDialogo('Já existe um cálculo com este nome. Por favor, escolha outro nome.');
-      return;
-    }
-
-    calculos[nome] = { salario: '', acrescimo: '', historico: [] };
-    calculoAtual = nome;
-    localStorage.setItem('calculoAtual', nome);
-    salvarTodosOsCalculos();
-    atualizarSelect();
-    carregarDadosDoCalculo();
-
-    document.body.removeChild(overlay);
-    document.body.removeChild(dialogoNovo);
-    mostrarDialogo('Novo cálculo criado com sucesso!');
-  };
-
-  // Permite criar com Enter
-  inputNome.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      document.getElementById('btnCriarNovo').click();
-    }
-  });
+function carregarDadosMes() {
+  const raw = localStorage.getItem(KEY_DADOS_MES);
+  if (raw) return JSON.parse(raw);
+  const obj = { mes: mesId(), salario: "", acrescimo: "", historico: [] };
+  localStorage.setItem(KEY_DADOS_MES, JSON.stringify(obj));
+  return obj;
 }
 
-// Troca o cálculo selecionado, salvando o anterior e carregando o novo
-function trocarCalculo() {
-  salvarDadosNoCalculo();
-  const select = document.getElementById("selectCalculo");
-  calculoAtual = select.value;
-  localStorage.setItem("calculoAtual", calculoAtual);
-  carregarDadosDoCalculo();
+function salvarDadosMes(obj) {
+  localStorage.setItem(KEY_DADOS_MES, JSON.stringify(obj));
 }
 
-// Salva todos os cálculos no localStorage
-function salvarTodosOsCalculos() {
-  localStorage.setItem("calculos", JSON.stringify(calculos));
+function snapshotMesAnteriorSeNecessario() {
+  const dados = carregarDadosMes();
+  const atual = mesId();
+  if (dados.mes !== atual) {
+    // calcula total de gastos do mês anterior (em centavos)
+    const itens = dados.historico || [];
+    let totalGastosCents = 0;
+    itens.forEach((it) => {
+      const valorDigits = (it.valor || "").replace(/\D/g, "");
+      const qtd = Number(it.quantidade) || 1;
+      totalGastosCents += (Number(valorDigits) || 0) * qtd;
+    });
+
+    const salarioCents = Number((dados.salario || "").replace(/\D/g, "")) || 0;
+    const acrescCents = Number((dados.acrescimo || "").replace(/\D/g, "")) || 0;
+    const saldoFinalCents = salarioCents + acrescCents - totalGastosCents;
+
+    const hist = JSON.parse(localStorage.getItem(KEY_HISTORICO_MENSAL) || "[]");
+    hist.push({
+      mes: dados.mes,
+      dados: {
+        salario: dados.salario,
+        acrescimo: dados.acrescimo,
+        historico: dados.historico,
+      },
+      saldoFinalCents: saldoFinalCents,
+      saldoFinal: formatarMoedaFromDigits(saldoFinalCents),
+    });
+    localStorage.setItem(KEY_HISTORICO_MENSAL, JSON.stringify(hist));
+
+    // novo mês: soma o saldo final (positivo ou negativo) ao salário do mês seguinte
+    const novoSalarioCents = salarioCents + saldoFinalCents;
+    const novo = {
+      mes: atual,
+      salario: formatarMoedaFromDigits(novoSalarioCents),
+      acrescimo: "",
+      historico: [],
+    };
+    salvarDadosMes(novo);
+    return novo;
+  }
+  return dados;
 }
 
-// Salva os dados do cálculo atual (salário, acréscimo e histórico)
-function salvarDadosNoCalculo() {
-  calculos[calculoAtual] = {
-    salario: document.getElementById("salario").value,
-    acrescimo: document.getElementById("acrescimo").value,
-    historico: [...historico],
-  };
-  salvarTodosOsCalculos();
+function mostrarMesAtualNoTopo() {
+  const el = document.getElementById("mesAtual");
+  if (!el) return;
+  el.textContent = `Mês: ${mesId().replace("-", " / ")}`; // ex: 02/2026
 }
 
-// Carrega os dados do cálculo atual na interface
-function carregarDadosDoCalculo() {
-  const dados = calculos[calculoAtual];
+function carregarInterfaceDoMes() {
+  const dados = carregarDadosMes();
   document.getElementById("salario").value = dados.salario || "";
   document.getElementById("acrescimo").value = dados.acrescimo || "";
 
-  historico.length = 0;
-  const tabela = document
+  const tbody = document
     .getElementById("tabelaProdutos")
     .getElementsByTagName("tbody")[0];
-  tabela.innerHTML = "";
-
-  dados.historico.forEach((item) => {
-    historico.push(item);
-    const novaLinha = tabela.insertRow();
-    novaLinha.insertCell(0).textContent = item.produto;
-    novaLinha.insertCell(1).textContent = item.quantidade;
-    novaLinha.insertCell(2).textContent = item.valor;
-    novaLinha.insertCell(3).textContent = item.data;
-    // Coluna de ações (Editar / Excluir)
-    const celAcoes = novaLinha.insertCell(4);
-    const idx = historico.length - 1; // índice atual no array historico
-    const btnEditar = document.createElement("button");
-    btnEditar.textContent = "Editar";
-    btnEditar.title = "Editar item (somente se adicionado hoje)";
-    btnEditar.onclick = function () {
-      editarItem(idx);
-    };
-    btnEditar.style.marginRight = "8px";
-    btnEditar.classList.add("botaoJS");
-
-    const btnExcluir = document.createElement("button");
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.title = "Excluir item";
-    btnExcluir.onclick = function () {
-      excluirItem(idx);
-    };
-    btnExcluir.classList.add("botaoJS");
-
-    celAcoes.appendChild(btnEditar);
-    celAcoes.appendChild(btnExcluir);
+  tbody.innerHTML = "";
+  (dados.historico || []).forEach((item, idx) => {
+    const tr = tbody.insertRow();
+    tr.insertCell(0).textContent = item.produto;
+    tr.insertCell(1).textContent = item.quantidade;
+    tr.insertCell(2).textContent = item.valor;
+    tr.insertCell(3).textContent = item.data;
+    const cAcoes = tr.insertCell(4);
+    const btnE = document.createElement("button");
+    btnE.classList.add("btnTabela");
+    btnE.textContent = "Editar";
+    btnE.onclick = () => editarItem(idx);
+    btnE.style.marginRight = "8px";
+    const btnX = document.createElement("button");
+    btnX.classList.add("btnTabela");
+    btnX.textContent = "Excluir";
+    btnX.onclick = () => excluirItem(idx);
+    cAcoes.appendChild(btnE);
+    cAcoes.appendChild(btnX);
   });
-
   calcularSaldo();
 }
 
-// Adiciona um produto ao histórico e à tabela, atualizando o saldo
 function adicionarProduto() {
   const produto = document.getElementById("produto").value.trim();
   const quantidade = document.getElementById("quantidade").value.trim();
   let valor = document.getElementById("valor").value.trim();
+  if (!produto || !quantidade || !valor) return;
+  valor = valor.replace(/\D/g, "");
+  if (!valor) return;
+  const valorFormatado = formatarMoedaFromDigits(valor);
+  const data = new Date().toLocaleDateString("pt-BR");
 
-  if (produto && valor && quantidade) {
-    valor = valor.replace(/\D/g, "");
-    if (!valor) return;
+  const dados = carregarDadosMes();
+  dados.historico = dados.historico || [];
+  dados.historico.push({ produto, quantidade, valor: valorFormatado, data });
+  salvarDadosMes(dados);
 
-    const valorFormatado = (Number(valor) / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+  document.getElementById("produto").value = "";
+  document.getElementById("quantidade").value = "1";
+  document.getElementById("valor").value = "";
 
-    const dataAtual = new Date();
-    const dataFormatada = dataAtual.toLocaleDateString("pt-BR");
-
-    const tabela = document
-      .getElementById("tabelaProdutos")
-      .getElementsByTagName("tbody")[0];
-    const novaLinha = tabela.insertRow();
-    novaLinha.insertCell(0).textContent = produto;
-    novaLinha.insertCell(1).textContent = quantidade;
-    novaLinha.insertCell(2).textContent = valorFormatado;
-    novaLinha.insertCell(3).textContent = dataFormatada;
-    // Coluna de ações
-    const celAcoes = novaLinha.insertCell(4);
-    const idx = historico.length; // novo índice que será inserido
-    const btnEditar = document.createElement("button");
-    btnEditar.textContent = "Editar";
-    btnEditar.title = "Editar item (somente se adicionado hoje)";
-    btnEditar.onclick = function () {
-      editarItem(idx);
-    };
-    btnEditar.style.marginRight = "8px";
-
-    const btnExcluir = document.createElement("button");
-    btnExcluir.textContent = "Excluir";
-    btnExcluir.title = "Excluir item";
-    btnExcluir.onclick = function () {
-      excluirItem(idx);
-    };
-
-    celAcoes.appendChild(btnEditar);
-    celAcoes.appendChild(btnExcluir);
-
-    historico.push({
-      produto,
-      quantidade,
-      valor: valorFormatado,
-      data: dataFormatada,
-    });
-
-    document.getElementById("produto").value = "";
-    document.getElementById("quantidade").value = "1";
-    document.getElementById("valor").value = "";
-
-    calcularSaldo();
-    salvarDadosNoCalculo();
-  }
+  carregarInterfaceDoMes();
 }
 
-// Função para criar diálogo customizado (alert/confirm)
-function mostrarDialogo(mensagem, tipo = "alert", confirmCallback = null) {
-  // Remove diálogo existente se houver
-  const dialogoExistente = document.querySelector(".dialogo-custom");
-  if (dialogoExistente) {
-    dialogoExistente.remove();
-  }
-
-  // Cria o diálogo
-  const dialogo = document.createElement("div");
-  dialogo.className = "dialogo-custom";
-  dialogo.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
-        z-index: 1000;
-        min-width: 300px;
-        text-align: center;
-    `;
-
-  // Adiciona fundo escuro
-  const overlay = document.createElement("div");
-  overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(15, 23, 42, 0.5);
-        z-index: 999;
-    `;
-  document.body.appendChild(overlay);
-
-  // Texto da mensagem
-  const texto = document.createElement("p");
-  texto.textContent = mensagem;
-  texto.style.cssText = `
-        margin: 0 0 20px 0;
-        color: #0F172A;
-        font-size: 16px;
-        line-height: 1.5;
-    `;
-  dialogo.appendChild(texto);
-
-  // Estilo base dos botões
-  const estiloBotao = `
-        background: #0D9488;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        margin: 0 5px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        transition: background 0.2s;
-    `;
-
-  // Botões baseados no tipo
-  if (tipo === "confirm") {
-    const btnConfirmar = document.createElement("button");
-    btnConfirmar.textContent = "Confirmar";
-    btnConfirmar.style.cssText = estiloBotao;
-    btnConfirmar.onmouseover = () =>
-      (btnConfirmar.style.background = "#075E55");
-    btnConfirmar.onmouseout = () => (btnConfirmar.style.background = "#0D9488");
-    btnConfirmar.onclick = () => {
-      if (confirmCallback) confirmCallback(true);
-      document.body.removeChild(overlay);
-      document.body.removeChild(dialogo);
-    };
-
-    const btnCancelar = document.createElement("button");
-    btnCancelar.textContent = "Cancelar";
-    btnCancelar.style.cssText =
-      estiloBotao + "background: #CBD5E1; color: #0F172A;";
-    btnCancelar.onmouseover = () => (btnCancelar.style.background = "#94A3B8");
-    btnCancelar.onmouseout = () => (btnCancelar.style.background = "#CBD5E1");
-    btnCancelar.onclick = () => {
-      if (confirmCallback) confirmCallback(false);
-      document.body.removeChild(overlay);
-      document.body.removeChild(dialogo);
-    };
-
-    dialogo.appendChild(btnConfirmar);
-    dialogo.appendChild(btnCancelar);
-  } else {
-    const btnOk = document.createElement("button");
-    btnOk.textContent = "OK";
-    btnOk.style.cssText = estiloBotao;
-    btnOk.onmouseover = () => (btnOk.style.background = "#075E55");
-    btnOk.onmouseout = () => (btnOk.style.background = "#0D9488");
-    btnOk.onclick = () => {
-      document.body.removeChild(overlay);
-      document.body.removeChild(dialogo);
-    };
-    dialogo.appendChild(btnOk);
-  }
-
-  document.body.appendChild(dialogo);
-}
-
-// Permite editar um item do histórico apenas se ele foi adicionado hoje
 function editarItem(index) {
-  const item = historico[index];
+  const dados = carregarDadosMes();
+  const item = dados.historico && dados.historico[index];
   if (!item) return;
-  const hojeBR = new Date().toLocaleDateString("pt-BR");
-  if (item.data !== hojeBR) {
-    mostrarDialogo(
-      "Este item não pode ser editado pois foi adicionado em outro dia. Apenas itens do dia atual podem ser modificados."
-    );
+  const hoje = new Date().toLocaleDateString("pt-BR");
+  if (item.data !== hoje) {
+    mostrarDialogo("Só é possível editar itens adicionados hoje.");
     return;
   }
 
-  // Cria diálogo de edição
-  const dialogoEdicao = document.createElement("div");
-  dialogoEdicao.className = "dialogo-custom";
-  dialogoEdicao.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
-        z-index: 1000;
-        min-width: 300px;
-    `;
-
-  // Overlay
+  // diálogo simples
+  const dlg = document.createElement("div");
+  dlg.className = "dialogo-custom";
+  // dlg.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#cbd5e1;padding:16px;border-radius:8px;z-index:2000;min-width:280px;`;
+  dlg.innerHTML = `
+    <div style="margin-bottom:8px;font-weight:600">Editar item</div>
+    <input id="_edit_prod" style="width:92%;margin-bottom:8px" value="${item.produto}" />
+    <input id="_edit_qtd" type="number" style="width:92%;margin-bottom:8px" value="${item.quantidade}" />
+    <input id="_edit_val" style="width:92%;margin-bottom:12px" value="${item.valor}" />
+    <div style="text-align:right"><button id="_edit_cancel">Cancelar</button> <button id="_edit_save">Salvar</button></div>
+  `;
   const overlay = document.createElement("div");
-  overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(15, 23, 42, 0.5);
-        z-index: 999;
-    `;
+  overlay.style.cssText = `position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:1999`;
   document.body.appendChild(overlay);
+  document.body.appendChild(dlg);
 
-  // Conteúdo do diálogo
-  dialogoEdicao.innerHTML = `
-        <h3 style="margin: 0 0 15px 0; color: #0F172A;">Editar Item</h3>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; color: #0F172A;">Produto:</label>
-            <input type="text" id="editProduto" value="${item.produto}" style="width: 100%; padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px;">
-        </div>
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 5px; color: #0F172A;">Quantidade:</label>
-            <input type="number" id="editQuantidade" value="${item.quantidade}" min="1" style="width: 100%; padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px;">
-        </div>
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 5px; color: #0F172A;">Valor:</label>
-            <input type="text" id="editValor" value="${item.valor}" style="width: 100%; padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px;">
-        </div>
-        <div style="text-align: right;">
-            <button id="btnCancelarEdicao" style="background: #CBD5E1; color: #0F172A; border: none; border-radius: 6px; padding: 8px 16px; margin-right: 8px; cursor: pointer;">Cancelar</button>
-            <button id="btnSalvarEdicao" style="background: #0D9488; color: white; border: none; border-radius: 6px; padding: 8px 16px; cursor: pointer;">Salvar</button>
-        </div>
-    `;
-
-  document.body.appendChild(dialogoEdicao);
-
-  // Event listeners
-  document.getElementById("btnCancelarEdicao").onclick = () => {
-    document.body.removeChild(overlay);
-    document.body.removeChild(dialogoEdicao);
+  document.getElementById("_edit_cancel").onclick = () => {
+    overlay.remove();
+    dlg.remove();
   };
-
-  document.getElementById("btnSalvarEdicao").onclick = () => {
-    const novoProduto = document.getElementById("editProduto").value.trim();
-    const novaQuantidade = document
-      .getElementById("editQuantidade")
-      .value.trim();
-    const novoValorInput = document.getElementById("editValor").value.trim();
-
-    if (!novoProduto || !novaQuantidade) {
-      mostrarDialogo("Por favor, preencha todos os campos.");
+  document.getElementById("_edit_save").onclick = () => {
+    const p = document.getElementById("_edit_prod").value.trim();
+    const q = document.getElementById("_edit_qtd").value.trim();
+    const v = document.getElementById("_edit_val").value.trim();
+    if (!p || !q || !v) {
+      mostrarDialogo("Preencha todos os campos.");
       return;
     }
-
-    const valorDigits = novoValorInput.replace(/\D/g, "");
-    if (!valorDigits) {
-      mostrarDialogo(
-        "Valor inválido. Por favor, insira um valor numérico válido."
-      );
+    const digits = v.replace(/\D/g, "");
+    if (!digits) {
+      mostrarDialogo("Valor inválido.");
       return;
     }
+    const vf = formatarMoedaFromDigits(digits);
+    dados.historico[index] = {
+      produto: p,
+      quantidade: q,
+      valor: vf,
+      data: dados.historico[index].data,
+    };
+    salvarDadosMes(dados);
+    overlay.remove();
+    dlg.remove();
+    carregarInterfaceDoMes();
+    mostrarDialogo("Item atualizado.");
+  };
+}
 
-    const valorFormatado = (Number(valorDigits) / 100).toLocaleString("pt-BR", {
+function excluirItem(index) {
+  const dados = carregarDadosMes();
+  const item = dados.historico && dados.historico[index];
+  if (!item) return;
+  mostrarDialogo(`Deseja excluir "${item.produto}"?`, "confirm", (ok) => {
+    if (!ok) return;
+    dados.historico.splice(index, 1);
+    salvarDadosMes(dados);
+    carregarInterfaceDoMes();
+    mostrarDialogo("Item excluído.");
+  });
+}
+
+function calcularSaldo() {
+  const salarioRaw = document
+    .getElementById("salario")
+    .value.replace(/\D/g, "");
+  const acresRaw = document
+    .getElementById("acrescimo")
+    .value.replace(/\D/g, "");
+  const salario = salarioRaw ? Number(salarioRaw) / 100 : 0;
+  const acres = acresRaw ? Number(acresRaw) / 100 : 0;
+
+  let total = 0;
+  document.querySelectorAll("#tabelaProdutos tbody tr").forEach((tr) => {
+    const qtd = Number(tr.cells[1].textContent) || 1;
+    const vtxt = tr.cells[2].textContent.replace(/\D/g, "");
+    const v = vtxt ? Number(vtxt) / 100 : 0;
+    total += qtd * v;
+  });
+
+  const saldo = salario + acres - total;
+  document.getElementById("resultado").textContent =
+    `Saldo restante: ${saldo.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+  document.getElementById("totalGastoDia").textContent =
+    `Total gasto no mês: ${total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`;
+
+  // Armazenar saldo para usar no modal
+  window.saldoAtual = saldo;
+  window.salarioTotal = salario + acres;
+}
+
+// listeners para campos que salvam direto no mês atual
+function instalarFormatadores() {
+  document.getElementById("salario").addEventListener("input", function (e) {
+    let v = e.target.value.replace(/\D/g, "");
+    if (!v) {
+      e.target.value = "";
+      calcularSaldo();
+      return;
+    }
+    e.target.value = (Number(v) / 100).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
+    const dados = carregarDadosMes();
+    dados.salario = e.target.value;
+    salvarDadosMes(dados);
+    calcularSaldo();
+  });
 
-    item.produto = novoProduto;
-    item.quantidade = novaQuantidade;
-    item.valor = valorFormatado;
+  document.getElementById("acrescimo").addEventListener("input", function (e) {
+    let v = e.target.value.replace(/\D/g, "");
+    if (!v) {
+      e.target.value = "";
+      calcularSaldo();
+      return;
+    }
+    e.target.value = (Number(v) / 100).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+    const dados = carregarDadosMes();
+    dados.acrescimo = e.target.value;
+    salvarDadosMes(dados);
+    calcularSaldo();
+  });
 
-    historico[index] = item;
-    salvarDadosNoCalculo();
-    carregarDadosDoCalculo();
-
-    document.body.removeChild(overlay);
-    document.body.removeChild(dialogoEdicao);
-
-    mostrarDialogo("Item atualizado com sucesso!");
-  };
-
-  // Formatar valor ao digitar
-  const inputValor = document.getElementById("editValor");
-  inputValor.addEventListener("input", function (e) {
-    let valor = e.target.value.replace(/\D/g, "");
-    if (!valor) {
+  document.getElementById("valor").addEventListener("input", function (e) {
+    let v = e.target.value.replace(/\D/g, "");
+    if (!v) {
       e.target.value = "";
       return;
     }
-    e.target.value = (Number(valor) / 100).toLocaleString("pt-BR", {
+    e.target.value = (Number(v) / 100).toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
   });
 }
 
-// Exclui item do histórico com confirmação
-function excluirItem(index) {
-  const item = historico[index];
-  if (!item) return;
-  mostrarDialogo(
-    `Deseja realmente excluir "${item.produto}"?`,
-    "confirm",
-    (confirmado) => {
-      if (confirmado) {
-        historico.splice(index, 1);
-        salvarDadosNoCalculo();
-        carregarDadosDoCalculo();
-        mostrarDialogo("Item excluído com sucesso!");
-      }
-    }
-  );
-}
-
-// Calcula o saldo restante e o total gasto no dia, exibindo na interface
-function calcularSaldo() {
-  let salario = document.getElementById("salario").value.replace(/\D/g, "");
-  let acrescimo = document.getElementById("acrescimo").value.replace(/\D/g, "");
-  salario = salario ? Number(salario) / 100 : 0;
-  acrescimo = acrescimo ? Number(acrescimo) / 100 : 0;
-
-  let totalGastos = 0;
-  const linhas = document.querySelectorAll("#tabelaProdutos tbody tr");
-  linhas.forEach((linha) => {
-    const quantidade = Number(linha.cells[1].textContent) || 1;
-    const valorTexto = linha.cells[2].textContent.replace(/\D/g, "");
-    totalGastos += quantidade * (valorTexto ? Number(valorTexto) / 100 : 0);
-  });
-
-  const saldo = salario + acrescimo - totalGastos;
-
-  document.getElementById(
-    "resultado"
-  ).textContent = `Saldo restante: ${saldo.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  })}`;
-
-  document.getElementById(
-    "totalGastoDia"
-  ).textContent = `Total gasto hoje: ${totalGastos.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  })}`;
-}
-
-// Formata o campo salário enquanto o usuário digita e salva alterações
-document.getElementById("salario").addEventListener("input", function (e) {
-  let valor = e.target.value.replace(/\D/g, "");
-  if (!valor) {
-    e.target.value = "";
-    calcularSaldo();
-    return;
-  }
-  valor = (Number(valor) / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  e.target.value = valor;
-  calcularSaldo();
-  salvarDadosNoCalculo();
-});
-
-// Formata o campo valor do produto enquanto o usuário digita
-document.getElementById("valor").addEventListener("input", function (e) {
-  let valor = e.target.value.replace(/\D/g, "");
-  if (!valor) {
-    e.target.value = "";
-    return;
-  }
-  valor = (Number(valor) / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  e.target.value = valor;
-});
-
-// Formata o campo acréscimo enquanto o usuário digita e salva alterações
-document.getElementById("acrescimo").addEventListener("input", function (e) {
-  let valor = e.target.value.replace(/\D/g, "");
-  if (!valor) {
-    e.target.value = "";
-    calcularSaldo();
-    return;
-  }
-  valor = (Number(valor) / 100).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-  e.target.value = valor;
-  calcularSaldo();
-  salvarDadosNoCalculo();
-});
-
-// Alterna entre abas da interface
-function abrirAba(id) {
-  document
-    .querySelectorAll(".aba")
-    .forEach((div) => div.classList.remove("active"));
-  document
-    .querySelectorAll(".tab-btn")
-    .forEach((btn) => btn.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  document
-    .querySelector(`.tab-btn[onclick="abrirAba('${id}')"]`)
-    .classList.add("active");
-}
-
-// Filtra o histórico por data e exibe os resultados na interface
+// Histórico: ao selecionar data, mostramos o snapshot do mês correspondente (mesmo se não houve alteração naquele dia)
 function filtrarPorData() {
-  const filtro = document.getElementById("filtroData").value;
+  const v = document.getElementById("filtroData").value; // aaaa-mm (month input format)
   const tbody = document
     .getElementById("tabelaHistorico")
     .getElementsByTagName("tbody")[0];
+  const info = document.getElementById("infoSaldoHistorico");
   tbody.innerHTML = "";
-  document.getElementById("infoSaldoHistorico").innerHTML = "";
+  info.innerHTML = "";
+  if (!v) return;
 
-  if (!filtro) return;
+  const partes = v.split("-");
+  const mesFiltro = `${partes[1]}-${partes[0]}`; // MM-YYYY
 
-  // Converte data do input (aaaa-mm-dd) para dd/mm/aaaa
-  const partes = filtro.split("-");
-  const dataFiltro = `${partes[2]}/${partes[1]}/${partes[0]}`;
-
-  // Junta todos os cálculos (apagados e atuais)
-  const historicoCalculos = JSON.parse(
-    localStorage.getItem("historicoCalculos") || "[]"
+  const histMensal = JSON.parse(
+    localStorage.getItem(KEY_HISTORICO_MENSAL) || "[]",
   );
-  const todosCalculos = [
-    ...historicoCalculos.map((c) => ({ nome: c.nome, dados: c.dados })),
-    ...Object.keys(calculos).map((nome) => ({ nome, dados: calculos[nome] })),
-  ];
+  const snap = histMensal.find((s) => s.mes === mesFiltro);
+  if (snap) {
+    const itens = snap.dados.historico || [];
+    let total = 0;
+    itens.forEach((it) => {
+      total +=
+        (Number(it.quantidade) || 1) *
+        (Number(it.valor.replace(/\D/g, "")) / 100);
+    });
+    const salario = (snap.dados.salario || "").replace(/\D/g, "");
+    const acres = (snap.dados.acrescimo || "").replace(/\D/g, "");
+    const saldoInicial = (Number(salario) + Number(acres)) / 100;
+    const saldoRest = saldoInicial - total;
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "historico-bloco";
+    infoDiv.style.marginBottom = "16px";
+    infoDiv.innerHTML = `<div style="font-weight:700">Mês: ${snap.mes} | Saldo inicial: ${saldoInicial.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Total gasto: ${total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Saldo restante: ${saldoRest.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>`;
+    const table = document.createElement("table");
+    table.className = "historico-tabela";
+    table.style.width = "100%";
+    table.style.marginTop = "8px";
+    table.innerHTML = `<thead><tr><th>Produto</th><th>Quantidade</th><th>Valor (R$)</th><th>Data</th></tr></thead><tbody>${itens.map((it) => `<tr><td>${it.produto}</td><td>${it.quantidade}</td><td>${it.valor}</td><td>${it.data}</td></tr>`).join("")}</tbody>`;
+    info.appendChild(infoDiv);
+    info.appendChild(table);
+    return;
+  }
 
-  let encontrou = false;
-
-  // Para cada cálculo, verifica se tem itens no dia e exibe bloco separado
-  todosCalculos.forEach((calc) => {
-    const itensDia = (calc.dados.historico || []).filter(
-      (item) => item.data === dataFiltro
+  // Se não há snapshot, checar mês atual
+  const dados = carregarDadosMes();
+  if (dados.mes === mesFiltro) {
+    const itens = dados.historico || [];
+    if (itens.length === 0) return;
+    let total = 0;
+    itens.forEach(
+      (it) =>
+        (total +=
+          (Number(it.quantidade) || 1) *
+          (Number(it.valor.replace(/\D/g, "")) / 100)),
     );
-    if (itensDia.length > 0) {
-      encontrou = true;
-      // Saldo inicial
-      let salario = (calc.dados.salario || "").replace(/\D/g, "");
-      let acrescimo = (calc.dados.acrescimo || "").replace(/\D/g, "");
-      const saldoInicial = (Number(salario) + Number(acrescimo)) / 100;
-
-      // Total gasto e saldo restante
-      let totalGastoDia = 0;
-      itensDia.forEach((item) => {
-        const valorUnitario = Number(item.valor.replace(/\D/g, "")) / 100;
-        totalGastoDia += (Number(item.quantidade) || 1) * valorUnitario;
-      });
-      const saldoRestante = saldoInicial - totalGastoDia;
-
-      // Cria bloco de resumo e tabela
-      const infoDiv = document.createElement("div");
-      infoDiv.className = "historico-bloco";
-      infoDiv.style.marginBottom = "32px";
-      infoDiv.innerHTML = `
-                <div style="font-weight:bold; margin-bottom:8px; color:#1a237e;">
-                    Cálculo: ${calc.nome} | 
-                    Saldo inicial do dia: ${saldoInicial.toLocaleString(
-                      "pt-BR",
-                      { style: "currency", currency: "BRL" }
-                    )} | 
-                    Total gasto: ${totalGastoDia.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })} | 
-                    Saldo restante: ${saldoRestante.toLocaleString("pt-BR", {
-                      style: "currency",
-                      currency: "BRL",
-                    })}
-                </div>
-                <table class="historico-tabela" style="width:100%;margin-bottom:8px;">
-                    <thead>
-                        <tr>
-                            <th>Produto</th>
-                            <th>Quantidade</th>
-                            <th>Valor (R$)</th>
-                            <th>Data</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itensDia
-                          .map(
-                            (item) => `
-                            <tr>
-                                <td>${item.produto}</td>
-                                <td>${item.quantidade}</td>
-                                <td>${item.valor}</td>
-                                <td>${item.data}</td>
-                            </tr>
-                        `
-                          )
-                          .join("")}
-                    </tbody>
-                </table>
-            `;
-      document.getElementById("infoSaldoHistorico").appendChild(infoDiv);
-    }
-  });
-
-  // Se não encontrou nada, limpa tudo
-  if (!encontrou) {
-    document.getElementById("infoSaldoHistorico").innerHTML = "";
-    tbody.innerHTML = "";
+    const salario = (dados.salario || "").replace(/\D/g, "");
+    const acresc = (dados.acrescimo || "").replace(/\D/g, "");
+    const saldoInicial = (Number(salario) + Number(acresc)) / 100;
+    const saldoRest = saldoInicial - total;
+    const infoDiv = document.createElement("div");
+    infoDiv.className = "historico-bloco";
+    infoDiv.style.marginBottom = "16px";
+    infoDiv.innerHTML = `<div style="font-weight:700">Mês atual: ${dados.mes} | Saldo inicial: ${saldoInicial.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Total gasto: ${total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} | Saldo restante: ${saldoRest.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>`;
+    const table = document.createElement("table");
+    table.className = "historico-tabela";
+    table.style.width = "100%";
+    table.style.marginTop = "8px";
+    table.innerHTML = `<thead><tr><th>Produto</th><th>Quantidade</th><th>Valor (R$)</th><th>Data</th></tr></thead><tbody>${itens.map((it) => `<tr><td>${it.produto}</td><td>${it.quantidade}</td><td>${it.valor}</td><td>${it.data}</td></tr>`).join("")}</tbody>`;
+    info.appendChild(infoDiv);
+    info.appendChild(table);
+    return;
   }
 }
 
-// Limpa o filtro de data e o histórico exibido
 function limparFiltro() {
   document.getElementById("filtroData").value = "";
-  const tbody = document
+  document
     .getElementById("tabelaHistorico")
-    .getElementsByTagName("tbody")[0];
-  tbody.innerHTML = "";
+    .getElementsByTagName("tbody")[0].innerHTML = "";
   document.getElementById("infoSaldoHistorico").textContent = "";
 }
 
-// Apaga o cálculo selecionado, salvando seu histórico antes
-function apagarCalculo() {
-  const select = document.getElementById("selectCalculo");
-  const nome = select.value;
-  if (!nome) return;
-  if (!confirm(`Tem certeza que deseja apagar o cálculo "${nome}"?`)) return;
-
-  // Salva o histórico desse cálculo antes de apagar
-  if (!localStorage.getItem("historicoCalculos")) {
-    localStorage.setItem("historicoCalculos", JSON.stringify([]));
-  }
-  const historicoCalculos = JSON.parse(
-    localStorage.getItem("historicoCalculos")
+function abrirAba(id) {
+  document
+    .querySelectorAll(".aba")
+    .forEach((d) => d.classList.remove("active"));
+  document
+    .querySelectorAll(".tab-btn")
+    .forEach((b) => b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  const btn = Array.from(document.querySelectorAll(".tab-btn")).find(
+    (x) => x.getAttribute("onclick") === `abrirAba('${id}')`,
   );
-  historicoCalculos.push({
-    nome: nome,
-    dados: { ...calculos[nome] },
-  });
-  localStorage.setItem("historicoCalculos", JSON.stringify(historicoCalculos));
-
-  // Remove do objeto e do localStorage
-  delete calculos[nome];
-  salvarTodosOsCalculos();
-
-  // Remove do select
-  select.remove(select.selectedIndex);
-
-  // Seleciona outro cálculo se houver
-  if (select.options.length > 0) {
-    select.selectedIndex = 0;
-    calculoAtual = select.value;
-    localStorage.setItem("calculoAtual", calculoAtual);
-    carregarDadosDoCalculo();
-  } else {
-    // Limpa campos se não houver mais cálculos
-    calculoAtual = "";
-    localStorage.removeItem("calculoAtual");
-    document.getElementById("salario").value = "";
-    document.getElementById("acrescimo").value = "";
-    historico.length = 0;
-    document
-      .getElementById("tabelaProdutos")
-      .getElementsByTagName("tbody")[0].innerHTML = "";
-    calcularSaldo();
-  }
+  if (btn) btn.classList.add("active");
 }
 
-// Inicializa o sistema ao carregar a página
+// diálogo simples reutilizável
+function mostrarDialogo(mensagem, tipo = "alert", cb = null) {
+  if (document.querySelector(".dialogo-custom")) return; // evita múltiplos
+  const overlay = document.createElement("div");
+  overlay.style.cssText =
+    "position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000";
+  const dlg = document.createElement("div");
+  dlg.className = "dialogo-custom";
+  dlg.style.cssText =
+    "position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#fff;padding:16px;border-radius:8px;z-index:2001;min-width:260px;";
+  const p = document.createElement("p");
+  p.textContent = mensagem;
+  dlg.appendChild(p);
+  if (tipo === "confirm") {
+    const yes = document.createElement("button");
+    yes.textContent = "Confirmar";
+    yes.style.marginRight = "8px";
+    yes.onclick = () => {
+      cb && cb(true);
+      overlay.remove();
+      dlg.remove();
+    };
+    const no = document.createElement("button");
+    no.textContent = "Cancelar";
+    no.onclick = () => {
+      cb && cb(false);
+      overlay.remove();
+      dlg.remove();
+    };
+    dlg.appendChild(no);
+    dlg.appendChild(yes);
+  } else {
+    const ok = document.createElement("button");
+    ok.textContent = "OK";
+    ok.onclick = () => {
+      overlay.remove();
+      dlg.remove();
+    };
+    dlg.appendChild(ok);
+  }
+  document.body.appendChild(overlay);
+  document.body.appendChild(dlg);
+}
+
+// Inicialização
 window.addEventListener("DOMContentLoaded", () => {
-  verificarNovoMes();
-  verificarNovoDia();
-  carregarCalculos();
+  snapshotMesAnteriorSeNecessario();
+  mostrarMesAtualNoTopo();
+  instalarFormatadores();
+  carregarInterfaceDoMes();
+  abrirAba("abaCadastro");
 });
+
+function abrirModalSobre() {
+  document.getElementById("modalSobre").style.display = "block";
+}
+function fecharModalSobre() {
+  document.getElementById("modalSobre").style.display = "none";
+}
+
+function abrirModalResumo() {
+  const porcentagemSaldo =
+    window.salarioTotal > 0
+      ? (window.saldoAtual / window.salarioTotal) * 100
+      : 0;
+
+  const porcentagemArredondada = Math.round(Math.max(0, porcentagemSaldo));
+  const porcentagemGasta = 100 - porcentagemArredondada;
+  document.querySelector(".circle").style.background =
+    `conic-gradient(#0d9488 ${porcentagemArredondada}%, #1e293b 0)`;
+
+  document.getElementById("porcentagemTxt").textContent =
+    `O valor restante representa aproximadamente ${porcentagemArredondada}% do seu salário mensal.`;
+  document.getElementById("modalResumoMes").style.display = "block";
+}
+function fecharModalResumo() {
+  document.getElementById("modalResumoMes").style.display = "none";
+}
