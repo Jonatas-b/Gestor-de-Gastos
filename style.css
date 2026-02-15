@@ -570,7 +570,7 @@ table {
   .footer-link,
   th,
   td {
-    font-size: 0.93em;
+    font-size: 0.75rem;
   }
 
   h1 {
@@ -605,6 +605,10 @@ table {
     width: fit-content;
     margin: 1.5rem auto;
     gap: 0.25rem;
+  }
+
+  .historico-bloco div {
+    font-size: 0.75rem;
   }
 
   #controleCalculo label {
