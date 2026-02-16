@@ -151,7 +151,7 @@ h1 {
 
 /* Inputs à esquerda */
 .inputs-lado {
-  max-width: 21.25rem;
+  max-width: 25.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -675,3 +675,4 @@ tr th {
   }
 
 }
+
