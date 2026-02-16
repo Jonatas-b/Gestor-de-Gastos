@@ -151,7 +151,6 @@ h1 {
 
 /* Inputs à esquerda */
 .inputs-lado {
-  min-width: 16.25rem;
   max-width: 21.25rem;
   display: flex;
   flex-direction: column;
@@ -189,7 +188,7 @@ input[type="month"] {
   border-radius: 0.5rem;
   font-size: 1rem;
   background: #1e293b;
-  color: #0d9488;
+  color: transparent;
   outline: none;
   margin-right: 0.75rem;
   border: 0.09rem solid #0d9488;
@@ -544,10 +543,15 @@ table {
   color: #cbd5e1;
   border: none;
   border-radius: 0.37rem;
-  padding: 0.37rem 0.75rem;
+  padding: 0.17rem 0.55rem;
   font-size: 0.87rem;
   cursor: pointer;
+  width: max-content(1rem);
   transition: background 0.2s;
+}
+
+tr th {
+  width: 20%;
 }
 
 /* Responsividade */
@@ -562,6 +566,10 @@ table {
     position: fixed;
     top: 1rem;
     left: 1.5rem;
+  }
+  #sobre:hover {
+    transform: none;
+    transition: none;
   }
 
   .inputs-lado input,
@@ -591,7 +599,7 @@ table {
   }
 
   .inputs-lado {
-    width: 100%;
+    width: 80%;
     margin: auto;
   }
 
@@ -629,11 +637,8 @@ table {
     justify-content: center;
     align-items: center;
   }
-  tr {
-    margin: 0.12rem;
-  }
   td {
-    padding: 0.37rem 0.25rem;
+    padding: 0.57rem 0.25rem;
   }
   .container {
     flex-direction: column;
@@ -649,6 +654,7 @@ table {
   }
   #filtroData {
     width: 0.93rem;
+    color: transparent;
   }
 
   .table-inputs button, .btnTabela {
@@ -656,5 +662,15 @@ table {
   }
   .table-inputs input {
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 440px) {
+  th, td {
+    padding: 0.37rem 0.25rem;
+    font-size: 0.62rem;
+  }
+  .table-inputs button, .btnTabela {
+    font-size: 0.62rem;
   }
 }

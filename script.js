@@ -100,6 +100,7 @@ function carregarInterfaceDoMes() {
     btnE.textContent = "Editar";
     btnE.onclick = () => editarItem(idx);
     btnE.style.marginRight = "8px";
+    btnE.style.marginBottom = "4px";
     const btnX = document.createElement("button");
     btnX.classList.add("btnTabela");
     btnX.textContent = "Excluir";
